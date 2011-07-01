@@ -27,6 +27,7 @@ module EDIS
     # Args:
     # username - Your EDIS registered username [REQUIRED]
     # password - Your EDIS registered password [REQUIRED]
+    #
     def gen_key(username, password)
       validate_creds username, password
       @conn.post "/#{username}", { :password => password }
@@ -35,51 +36,58 @@ module EDIS
     #
     # Find investigations.
     #
-    # Accepts an options hash of the following keys:
+    # Accepts an hash for the following options:
     # :investigation_number - the investigation number.
     # :investigation_phase  - the name of the investigation phase.
     #                         :investgation_number is required when
     #                         using this option
     # :investigation_type   - the name of the investigation type
     # :investigation_status - the name of the investigation status
+    # :page                 - the page number for result pagination.
     # :key                  - the authorization digest
     #
     def find_investigations(options = {})
       return if options.empty?
+      []
     end
 
     #
-    # Fetch documents
+    # Fetch document metadata.
     #
-    # Accepts a hash with the following keys:
-    # :security_level       - the security level name.
-    # :investigation_number - the investigation number.
-    # :investigation_phase  - the name of the investigation phase.
-    #                         :investgation_number is required when
-    #                         using this option
-    # :document_type        - the document type
-    # :firm_org             - the firm that filed the doc
-    # :key                  - the authorization digest
+    # Accepts an hash for the following options:
+    # :security_level         - the security level name.
+    # :investigation_number   - the investigation number.
+    # :investigation_phase    - the name of the investigation phase.
+    #                           :investgation_number is required when
+    #                           using this option
+    # :document_type          - the document type
+    # :official_received_date - the document's offical received date
+    # :modified_date          - the docuemnt's last modified date
+    # :firm_org               - the firm that filed the doc
+    # :page                   - the page number for result pagination.
+    # :key                    - the authorization digest
     #
     def find_documents(options = {})
       return if options.empty?
+      []
     end
 
     #
     # Fetch a documents attachments.
     #
-    # Accepts a hash with the following keys:
+    # Accepts an hash for the following options:
     # :document_id - the document id [REQUIRED]
     # :key         - the authorization digest
     #
     def findAttachments
       return if options.empty?
+      []
     end
 
     #
     # Fetch a document.
     #
-    # Accepts a hash with the following keys:
+    # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
     # :username      - The EDIS registered username [REQUIRED] 
