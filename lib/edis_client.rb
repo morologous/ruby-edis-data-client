@@ -21,12 +21,14 @@ module EDIS
     end
 
     #
-    # Fetch a digest for api usage.
+    # Fetch a digest for api usage.  Users must be preregistered with
+    # the edis app.
     #
-    # Required args:
-    # username
-    #
+    # Args:
+    # username - Your EDIS registered username [REQUIRED]
+    # password - Your EDIS registered password [REQUIRED]
     def gen_key(username, password)
+      validate_creds username, password
       @conn.post "/#{username}", { :password => password }
     end
 
@@ -40,8 +42,10 @@ module EDIS
     #                         using this option
     # :investigation_type   - the name of the investigation type
     # :investigation_status - the name of the investigation status
+    # :key                  - the authorization digest
     #
     def find_investigations(options = {})
+      return if options.empty?
     end
 
     #
@@ -55,14 +59,39 @@ module EDIS
     #                         using this option
     # :document_type        - the document type
     # :firm_org             - the firm that filed the doc
+    # :key                  - the authorization digest
     #
     def find_documents(options = {})
+      return if options.empty?
     end
 
+    #
+    # Fetch a documents attachments.
+    #
+    # Accepts a hash with the following keys:
+    # :document_id - the document id [REQUIRED]
+    # :key         - the authorization digest
+    #
     def findAttachments
+      return if options.empty?
     end
 
+    #
+    # Fetch a document.
+    #
+    # Accepts a hash with the following keys:
+    # :document_id   - the document id [REQUIRED]
+    # :attachment_id - the actual attachment id [REQUIRED]
+    # :username      - The EDIS registered username [REQUIRED] 
+    # :key           - The authorization key returned from gen_key [REQUIRED]
+    #
     def downloadAttachment
+    end
+    
+    ######################################################################################
+    private
+    
+    def validate_creds(username, password)
     end
   end
 end
