@@ -1,7 +1,7 @@
 require 'faraday'
 
 #
-# Friendly little API for interacting with the United States International 
+# Friendly little API for interacting with the United States International
 # Trade Commission's EDIS data REST services.
 #
 module EDIS
@@ -17,7 +17,7 @@ module EDIS
         yield builder if block_given?
       end
     end
-    
+
     #
     # Fetch a digest for api usage.
     #
@@ -27,21 +27,21 @@ module EDIS
     def gen_key(username, password)
       @conn.post "/#{username}", { :password => password }
     end
-  
+
     #
-    # Find investigations. 
+    # Find investigations.
     #
     # Accepts an options hash of the following keys:
     # :investigation_number - the investigation number.
     # :investigation_phase  - the name of the investigation phase.
-    #                         :investgation_number is required when 
+    #                         :investgation_number is required when
     #                         using this option
     # :investigation_type   - the name of the investigation type
     # :investigation_status - the name of the investigation status
     #
     def find_investigations(options = {})
     end
-  
+
     #
     # Fetch documents
     #
@@ -49,17 +49,17 @@ module EDIS
     # :security_level       - the security level name.
     # :investigation_number - the investigation number.
     # :investigation_phase  - the name of the investigation phase.
-    #                         :investgation_number is required when 
+    #                         :investgation_number is required when
     #                         using this option
     # :document_type        - the document type
     # :firm_org             - the firm that filed the doc
     #
     def find_documents(options = {})
     end
-  
+
     def findAttachments
     end
-  
+
     def downloadAttachment
     end
   end
