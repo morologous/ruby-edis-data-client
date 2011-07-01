@@ -1,5 +1,5 @@
 .document
 .bundle
-pkg
 .DS_Store
+pkg
 Gemfile.lock

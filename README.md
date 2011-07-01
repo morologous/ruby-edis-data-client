@@ -1,6 +1,6 @@
 # edis_client
 
-The EDIS Data Webservice is a service provided by the United States International Trade Commission. For more information on either the USITC or EDIS please visit their respective websites (www.usitc.gov or edis.usitc.gov)
+The EDIS Data Webservice is a service provided by the United States International Trade Commission. For more information on either the USITC or EDIS please visit their respective websites ([www.usitc.gov](http://www.usitc.gov) or [edis.usitc.gov](http://edis.usitc.gov))
 
 Documentation on the EDIS data webserivce can be found here
 
