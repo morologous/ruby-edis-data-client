@@ -1,7 +1,7 @@
 require 'faraday'
 
 #
-# Friendly little API for interacting with the United States International
+# Friendly little GEM for interacting with the United States International
 # Trade Commission's EDIS data REST services.
 #
 module EDIS
@@ -9,6 +9,8 @@ module EDIS
     #
     # Construct a new instance. A block can be given to provide additional
     # configuration to Faraday.
+    #
+    #   edis = EDIS::Client.new { |b| b.response :logger }
     #
     def initialize
       @conn = Faraday.new(:url => 'https://edis.usitc.gov/data') do |builder|
