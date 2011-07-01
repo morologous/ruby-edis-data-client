@@ -47,7 +47,6 @@ module EDIS
     # :key                  - the authorization key returned from gen_key
     #
     def find_investigations(options = {})
-      return if options.empty?
       []
     end
 
@@ -68,19 +67,18 @@ module EDIS
     # :key                    - the authorization key returned from gen_key
     #
     def find_documents(options = {})
-      return if options.empty?
       []
     end
 
     #
-    # Fetch a documents attachments.
+    # Fetch a document's attachments.
     #
     # Accepts an hash for the following options:
     # :document_id - the document id [REQUIRED]
     # :key        - The authorization key returned from gen_key
     #
-    def findAttachments
-      return if options.empty?
+    def find_attachments(options = {})
+      validate_presenceof :document_id, options
       []
     end
 
@@ -93,13 +91,20 @@ module EDIS
     # :username      - the EDIS registered username [REQUIRED] 
     # :key           - the authorization key returned from gen_key [REQUIRED]
     #
-    def downloadAttachment
+    def download_attachment(options = {})
+      validate_presenseof [:document_id, :attachemnt_id, :username, :key], options
     end
     
     ######################################################################################
     private
     
     def validate_creds(username, password)
+    end
+    
+    def validate_presenceof(*requires, options)
+      requires.each do |required|
+        raise "Missing one or more required options #{requires}" unless options.contains? required
+      end
     end
   end
 end
