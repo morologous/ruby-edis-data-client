@@ -25,8 +25,8 @@ module EDIS
     # the edis app.
     #
     # Args:
-    # username - Your EDIS registered username [REQUIRED]
-    # password - Your EDIS registered password [REQUIRED]
+    # username - your EDIS registered username [REQUIRED]
+    # password - your EDIS registered password [REQUIRED]
     #
     def gen_key(username, password)
       validate_creds username, password
@@ -44,7 +44,7 @@ module EDIS
     # :investigation_type   - the name of the investigation type
     # :investigation_status - the name of the investigation status
     # :page                 - the page number for result pagination.
-    # :key                  - the authorization digest
+    # :key                  - the authorization key returned from gen_key
     #
     def find_investigations(options = {})
       return if options.empty?
@@ -65,7 +65,7 @@ module EDIS
     # :modified_date          - the docuemnt's last modified date
     # :firm_org               - the firm that filed the doc
     # :page                   - the page number for result pagination.
-    # :key                    - the authorization digest
+    # :key                    - the authorization key returned from gen_key
     #
     def find_documents(options = {})
       return if options.empty?
@@ -77,7 +77,7 @@ module EDIS
     #
     # Accepts an hash for the following options:
     # :document_id - the document id [REQUIRED]
-    # :key         - the authorization digest
+    # :key        - The authorization key returned from gen_key
     #
     def findAttachments
       return if options.empty?
@@ -90,8 +90,8 @@ module EDIS
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
-    # :username      - The EDIS registered username [REQUIRED] 
-    # :key           - The authorization key returned from gen_key [REQUIRED]
+    # :username      - the EDIS registered username [REQUIRED] 
+    # :key           - the authorization key returned from gen_key [REQUIRED]
     #
     def downloadAttachment
     end
