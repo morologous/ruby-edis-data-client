@@ -4,6 +4,13 @@ The EDIS Data Webservice is a service provided by the United States Internationa
 
 Documentation on the EDIS data webserivce can be found here
 
+## Testing
+Before running the tests via Rake you will need to add ./test/config.rb with a hash with the following keys
+
+```ruby
+CREDS = { username: 'sean', password: 'password' }
+```
+
 ## Contributing to edis_client
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet

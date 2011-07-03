@@ -1,0 +1,1 @@
+CREDS = { username: 'sean', password: 'password' }

@@ -7,6 +7,14 @@ rescue Bundler::BundlerError => e
   $stderr.puts "Run `bundle install` to install missing gems"
   exit e.status_code
 end
+
+begin
+  require 'config'
+rescue LoadError
+  $stderr.puts "Missing file test/config.rb."
+  exit 1
+end
+
 require 'test/unit'
 require 'shoulda'
 
