@@ -60,7 +60,7 @@ module EDIS
         :investigation_number, 
         :investigation_phase
       ]
-      
+            
       params = build_params options, [
         :page,
         :investigation_type,
@@ -89,7 +89,7 @@ module EDIS
       path = build_path '/document', options, [:document_id] 
       # TODO format dates
       params = build_params options, [
-        :page                           
+        :page,                           
         :firm_org,               
         :document_type,          
         :modified_date,          
@@ -137,7 +137,7 @@ module EDIS
     #
     def validate_presenceof(requires, options, msg = nil)
       requires.each do |required|
-        unless options.key? required
+        unless options[required]
           raise ArgumentError, msg || "Missing one or more required options #{requires}"
         end
       end
