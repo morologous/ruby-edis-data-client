@@ -52,12 +52,12 @@ module EDIS
     #
     def find_investigations(options = {})
       # validate
-      path = [:investigation_number, :investigation_path].inject('/investigation') do |path, resource|
-        path << "/#{options[resource]}" if options[resource]
-      end
-      params = [:page, :investigation_type, :investigation_status].inject({}) do |params, param|
-        params[camelize(param.to_s, false)] = options[param] if options[param]
-      end
+      resources = [:investigation_number, :investigation_path]
+      path = build_path '/investiation', resources, options
+      
+      query_params = [:page, :investigation_type, :investigation_status]
+      params = build_params query_params, options
+      
       get path, params, options
     end
 
@@ -133,6 +133,21 @@ module EDIS
       end
       Crack::XML.parse(resp.body)['results']
     end    
+
+    #
+    # Builds onto the root path with optional resources.
+    #
+    def build_path(root, resources, options)
+      resources.inject(root) do |path, resource|
+        path << "/#{options[resource]}" if options[resource]
+      end
+    end
+    
+    def build_params(query_params, options)
+      query_params.inject({}) do |params, param|
+        params[camelize(param.to_s, false)] = options[param] if options[param]
+      end      
+    end
      
     #
     # Camelize a symbol, lifted from Rails.  
