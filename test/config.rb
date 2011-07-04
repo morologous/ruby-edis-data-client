@@ -1,1 +1,0 @@
-CREDS = { username: 'edisclient', password: 'l3tme!n!!' }
