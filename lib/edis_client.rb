@@ -1,7 +1,6 @@
 require 'base64'
 require 'crack'
 require 'faraday'
-require 'json'
 
 #
 # Friendly little GEM for interacting with the United States International
@@ -52,7 +51,14 @@ module EDIS
     # :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
-      []
+      # validate
+      path = [:investigation_number, :investigation_path].inject('/investigation') do |path, resource|
+        path << "/#{options[resource]}" if options[resource]
+      end
+      params = [:page, :investigation_type, :investigation_status].inject({}) do |params, param|
+        params[camelize(param.to_s, false)] = options[param] if options[param]
+      end
+      get path, params, options
     end
 
     #
@@ -85,8 +91,7 @@ module EDIS
     #
     def find_attachments(options = {})
       validate_presenceof :document_id, options
-      resp = @conn.get "/data/attachment/#{options[:document_id]}", header(options)
-      Crack::XML.parse(resp.body)['results']
+      get "/attachment/#{options[:document_id]}", options
     end
 
     #
@@ -95,11 +100,10 @@ module EDIS
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
-    # :username      - the EDIS registered username [REQUIRED] 
     # :digest        - the authorization digest returned from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
-      validate_presenseof [:document_id, :attachemnt_id, :username, :digest], options
+      validate_presenseof [:document_id, :attachemnt_id, :digest], options
     end
     
     ######################################################################################
@@ -117,8 +121,29 @@ module EDIS
       end
     end
     
-    def header(options)
-      options[:digest] ? { 'Authorization' => options[:digest] } : {}
+    #
+    # Invokes the api at the given path.  Returns a hash rooted at the
+    # rest API's results node.
+    #
+    def get(path, options, params = {})
+      resp = @conn.get do |req|
+        req.url "/data/#{path}"
+        req.headers['Authorization'] = options[:digest] if options[:digest]
+        req.params = params if params
+      end
+      Crack::XML.parse(resp.body)['results']
+    end    
+     
+    #
+    # Camelize a symbol, lifted from Rails.  
+    # TODO: monkey patch String or Symbol with this
+    #
+    def camelize(s, first_letter_in_uppercase = true)
+      if first_letter_in_uppercase
+        s.to_s.gsub(/\/(.?)/) { "::#{$1.upcase}" }.gsub(/(?:^|_)(.)/) { $1.upcase }
+      else
+        s.to_s[0].chr.downcase + camelize(s)[1..-1]
+      end
     end    
   end
 end
