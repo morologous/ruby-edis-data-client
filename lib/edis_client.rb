@@ -51,25 +51,33 @@ module EDIS
     # :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
-      # validate
-      resources = [:investigation_number, :investigation_path]
-      path = build_path '/investiation', resources, options
+      if options[:investigation_phase]
+        msg = ":investigation_number is required when :investigation_phase is specified."
+        validate_presenceof [:investigation_number], options, msg
+      end
       
-      query_params = [:page, :investigation_type, :investigation_status]
-      params = build_params query_params, options
+      path = build_path '/investigation', options, [
+        :investigation_number, 
+        :investigation_phase
+      ]
       
-      get path, params, options
+      params = build_params options, [
+        :page,
+        :investigation_type,
+        :investigation_status  
+      ]
+      
+      get_resource path, params, options
     end
 
     #
     # Fetch document metadata.
     #
     # Accepts an hash for the following options:
+    # :document_id            - the document id.
     # :security_level         - the security level name.
     # :investigation_number   - the investigation number.
     # :investigation_phase    - the name of the investigation phase.
-    #                           :investgation_number is required when
-    #                           using this option
     # :document_type          - the document type
     # :official_received_date - the document's offical received date
     # :modified_date          - the docuemnt's last modified date
@@ -78,7 +86,20 @@ module EDIS
     # :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
-      []
+      path = build_path '/document', options, [:document_id] 
+      # TODO format dates
+      params = build_params options, [
+        :page                           
+        :firm_org,               
+        :document_type,          
+        :modified_date,          
+        :security_level,
+        :investigation_phase,  
+        :investigation_number,   
+        :official_received_date, 
+      ]
+      
+      get_resource path, params, options
     end
 
     #
@@ -90,20 +111,21 @@ module EDIS
     # :digest      - The authorization digest returned from gen_digest
     #
     def find_attachments(options = {})
-      validate_presenceof :document_id, options
-      get "/attachment/#{options[:document_id]}", options
+      validate_presenceof [:document_id], options
+      get_resource "/attachment/#{options[:document_id]}", options
     end
 
     #
     # Fetch a document.
-    #
+    # 
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
     # :digest        - the authorization digest returned from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
-      validate_presenseof [:document_id, :attachemnt_id, :digest], options
+      validate_presenceof [:document_id, :attachemnt_id, :digest], options
+      {}
     end
     
     ######################################################################################
@@ -113,10 +135,10 @@ module EDIS
     # Validates the requires are present in the options.  Raises 
     # ArgumentError if not.
     #
-    def validate_presenceof(*requires, options)
+    def validate_presenceof(requires, options, msg = nil)
       requires.each do |required|
         unless options.key? required
-          raise ArgumentError, "Missing one or more required options #{requires}" 
+          raise ArgumentError, msg || "Missing one or more required options #{requires}"
         end
       end
     end
@@ -125,7 +147,7 @@ module EDIS
     # Invokes the api at the given path.  Returns a hash rooted at the
     # rest API's results node.
     #
-    def get(path, options, params = {})
+    def get_resource(path, options, params = {})
       resp = @conn.get do |req|
         req.url "/data/#{path}"
         req.headers['Authorization'] = options[:digest] if options[:digest]
@@ -135,16 +157,19 @@ module EDIS
     end    
 
     #
-    # Builds onto the root path with optional resources.
+    # Builds a path with optional resources paths if specified.
     #
-    def build_path(root, resources, options)
-      resources.inject(root) do |path, resource|
+    def build_path(root, options, optional_resources)
+      optional_resources.inject(root) do |path, resource|
         path << "/#{options[resource]}" if options[resource]
       end
     end
     
-    def build_params(query_params, options)
-      query_params.inject({}) do |params, param|
+    #
+    # Builds the params hash from the q
+    #
+    def build_params(options, optional_params)
+      optional_params.inject({}) do |params, param|
         params[camelize(param.to_s, false)] = options[param] if options[param]
       end      
     end
