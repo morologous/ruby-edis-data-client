@@ -13,7 +13,7 @@ module EDIS
     #   edis = EDIS::Client.new { |b| b.response :logger }
     #
     def initialize
-      @conn = Faraday.new(:url => 'https://edis.usitc.gov/data') do |builder|
+      @conn = Faraday.new(url: 'https://edis.usitc.gov/data') do |builder|
         builder.request :url_encoded
         builder.adapter :net_http
         yield builder if block_given?
@@ -30,7 +30,7 @@ module EDIS
     #
     def gen_key(username, password)
       validate_creds username, password
-      @conn.post "/#{username}", { :password => password }
+      @conn.post "/secretKey/#{username}", { password: password }
     end
 
     #

@@ -1,1 +1,1 @@
-CREDS = { username: 'sean', password: 'password' }
+CREDS = { username: 'edisclient', password: 'l3tme!n!!' }
