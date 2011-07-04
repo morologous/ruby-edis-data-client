@@ -1,4 +1,7 @@
+require 'active_support'
+require 'base64'
 require 'faraday'
+require 'json'
 
 #
 # Friendly little GEM for interacting with the United States International
@@ -13,7 +16,7 @@ module EDIS
     #   edis = EDIS::Client.new { |b| b.response :logger }
     #
     def initialize
-      @conn = Faraday.new(url: 'https://edis.usitc.gov/data') do |builder|
+      @conn = Faraday.new(url: 'https://edis.usitc.gov') do |builder|
         builder.request :url_encoded
         builder.adapter :net_http
         yield builder if block_given?
@@ -28,9 +31,12 @@ module EDIS
     # username - your EDIS registered username [REQUIRED]
     # password - your EDIS registered password [REQUIRED]
     #
-    def gen_key(username, password)
+    def gen_digest(username, password)
       validate_creds username, password
-      @conn.post "/secretKey/#{username}", { password: password }
+      resp = @conn.post "/data/secretKey/#{username}", { password: password }
+      raise ArgumentError, "Invalid credentials." unless resp.status == 200
+      # parse the response
+      Base64.encode64 "#{username}:#{resp.body}"
     end
 
     #
@@ -44,7 +50,7 @@ module EDIS
     # :investigation_type   - the name of the investigation type
     # :investigation_status - the name of the investigation status
     # :page                 - the page number for result pagination.
-    # :key                  - the authorization key returned from gen_key
+    # :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
       []
@@ -64,7 +70,7 @@ module EDIS
     # :modified_date          - the docuemnt's last modified date
     # :firm_org               - the firm that filed the doc
     # :page                   - the page number for result pagination.
-    # :key                    - the authorization key returned from gen_key
+    # :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
       []
@@ -75,11 +81,11 @@ module EDIS
     #
     # Accepts an hash for the following options:
     # :document_id - the document id [REQUIRED]
-    # :key        - The authorization key returned from gen_key
+    # :digest      - The authorization digest returned from gen_digest
     #
     def find_attachments(options = {})
       validate_presenceof :document_id, options
-      []
+      get options, "/data/attachment/#{options[:document_id]}", header
     end
 
     #
@@ -89,10 +95,10 @@ module EDIS
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
     # :username      - the EDIS registered username [REQUIRED] 
-    # :key           - the authorization key returned from gen_key [REQUIRED]
+    # :digest        - the authorization digest returned from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
-      validate_presenseof [:document_id, :attachemnt_id, :username, :key], options
+      validate_presenseof [:document_id, :attachemnt_id, :username, :digest], options
     end
     
     ######################################################################################
@@ -103,8 +109,12 @@ module EDIS
     
     def validate_presenceof(*requires, options)
       requires.each do |required|
-        raise "Missing one or more required options #{requires}" unless options.contains? required
+        raise "Missing one or more required options #{requires}" unless options.digest? required
       end
     end
+    
+    def header(options)
+      options[:digest] ? { 'Authorization' => options[:digest] } : {}
+    end    
   end
 end
