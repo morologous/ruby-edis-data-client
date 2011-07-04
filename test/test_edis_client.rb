@@ -11,11 +11,15 @@ class TestEdisClient < Test::Unit::TestCase
     end
     
     should "return a digest when given valid credentials to generate a digest" do
-      assert_equal 200, @edis.gen_digest(CREDS[:username], CREDS[:password]).status
+      assert_not_nil @edis.gen_digest(CREDS[:username], CREDS[:password])
     end
-    # 
-    # should "return an xml representiation of an attachment" do
-    #   assert_equal 200, @edis.find_attachments({document_id: 453695}).status
-    # end 
+    
+    should "thorw ArgumentError when document_id is missing" do
+      assert_raise(ArgumentError) { @edis.find_attachments({}) }
+    end 
+
+    should "return an xml representiation of an attachment" do
+      assert_not_nil @edis.find_attachments({document_id: 453695})
+    end 
   end
 end

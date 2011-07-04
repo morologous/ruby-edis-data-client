@@ -1,5 +1,5 @@
-require 'active_support'
 require 'base64'
+require 'crack'
 require 'faraday'
 require 'json'
 
@@ -24,7 +24,7 @@ module EDIS
     end
 
     #
-    # Fetch a digest for api usage.  Users must be preregistered with
+    # Generates a digest for api usage.  Users must be preregistered with
     # the edis app.
     #
     # Args:
@@ -32,11 +32,10 @@ module EDIS
     # password - your EDIS registered password [REQUIRED]
     #
     def gen_digest(username, password)
-      validate_creds username, password
       resp = @conn.post "/data/secretKey/#{username}", { password: password }
       raise ArgumentError, "Invalid credentials." unless resp.status == 200
-      # parse the response
-      Base64.encode64 "#{username}:#{resp.body}"
+      results = Crack::XML.parse(resp.body)['results']
+      Base64.encode64 "#{username}:#{results['secretKey']}"
     end
 
     #
@@ -77,7 +76,8 @@ module EDIS
     end
 
     #
-    # Fetch a document's attachments.
+    # Fetch a document's attachments.  Returns a hash rooted at the
+    # rest API's results node.
     #
     # Accepts an hash for the following options:
     # :document_id - the document id [REQUIRED]
@@ -85,7 +85,8 @@ module EDIS
     #
     def find_attachments(options = {})
       validate_presenceof :document_id, options
-      get options, "/data/attachment/#{options[:document_id]}", header
+      resp = @conn.get "/data/attachment/#{options[:document_id]}", header(options)
+      Crack::XML.parse(resp.body)['results']
     end
 
     #
@@ -104,12 +105,15 @@ module EDIS
     ######################################################################################
     private
     
-    def validate_creds(username, password)
-    end
-    
+    #
+    # Validates the requires are present in the options.  Raises 
+    # ArgumentError if not.
+    #
     def validate_presenceof(*requires, options)
       requires.each do |required|
-        raise "Missing one or more required options #{requires}" unless options.digest? required
+        unless options.key? required
+          raise ArgumentError, "Missing one or more required options #{requires}" 
+        end
       end
     end
     
