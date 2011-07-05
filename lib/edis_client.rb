@@ -57,14 +57,11 @@ module EDIS
       end
       
       path = build_path '/investigation', options, [
-        :investigation_number, 
-        :investigation_phase
+        :investigation_number, :investigation_phase
       ]
             
       params = build_params options, [
-        :page,
-        :investigation_type,
-        :investigation_status  
+        :page, :investigation_type, :investigation_status  
       ]
       
       get_resource path, params, options
@@ -79,26 +76,33 @@ module EDIS
     # :investigation_number   - the investigation number.
     # :investigation_phase    - the name of the investigation phase.
     # :document_type          - the document type
-    # :official_received_date - the document's offical received date
-    # :modified_date          - the docuemnt's last modified date
+    # :official_received_date - the document's official received date comparision.
+    #                           this should be a hash of the following keys:
+    #                           :comparision_type => :between, :before, :after or :exact
+    #                             when the type is :exact, :before, :after then
+    #                               the hash must also contain :date
+    #                             for :between the hash must contain the 2 following
+    #                               keys :from_date, :to_date
+    # :modified_date          - the docuemnt's last modified date comparision.
+    #                           this should be a hash of the following keys:
+    #                           :comparision_type => :between, :before, :after or :exact
+    #                             when the type is :exact, :before, :after then
+    #                               the hash must also contain :date
+    #                             for :between the hash must contain the 2 following
+    #                               keys :from_date, :to_date
     # :firm_org               - the firm that filed the doc
     # :page                   - the page number for result pagination.
     # :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
       path = build_path '/document', options, [:document_id] 
-      # TODO format dates
       params = build_params options, [
-        :page,                           
-        :firm_org,               
-        :document_type,          
-        :modified_date,          
-        :security_level,
-        :investigation_phase,  
-        :investigation_number,   
-        :official_received_date, 
+        :page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number
       ]
       
+      append_date_params params, options, [
+        :official_received_date,  :modified_date
+      ]
       get_resource path, params, options
     end
 
@@ -172,6 +176,28 @@ module EDIS
       optional_params.inject({}) do |params, param|
         params[camelize(param.to_s, false)] = options[param] if options[param]
       end      
+    end
+    
+    #
+    # Appends to the params date comparisions.
+    #
+    def append_date_params(params, options, *optional_date_params)
+      optional_date_params.each do |date_param|
+        if options[date_param]
+          comparison = options[date_param]
+          case comparison[:comparison_type]
+            when :between
+              params[camelize(date_param)] =
+                "#BETWEEN:#{date_param[:from_date]}:#{date_param[:to_date]}"
+            when :before, :after, :exact
+              params[camelize(date_param)] = 
+                "#{comparison[:comparison_type].uppercase}:#{comparision[:date]}"
+            else
+              raise ArgumentError, 
+                "Unknown comparison type #{comparison[:comparison_type]}"
+          end
+        end
+      end
     end
      
     #
