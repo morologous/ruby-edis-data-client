@@ -51,11 +51,7 @@ module EDIS
     # :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
-      if options[:investigation_phase]
-        msg = ":investigation_number is required when :investigation_phase is specified."
-        validate_presenceof [:investigation_number], options, msg
-      end
-      
+      valiate_investigation_options options
       path = build_path '/investigation', options, [
         :investigation_number, :investigation_phase
       ]
@@ -125,7 +121,8 @@ module EDIS
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
     # :attachment_id - the actual attachment id [REQUIRED]
-    # :digest        - the authorization digest returned from gen_digest [REQUIRED]
+    # :digest        - the authorization digest returned 
+    #                  from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
       validate_presenceof [:document_id, :attachemnt_id, :digest], options
@@ -144,6 +141,17 @@ module EDIS
         unless options[required]
           raise ArgumentError, msg || "Missing one or more required options #{requires}"
         end
+      end
+    end
+
+    #
+    # Validates that when :investigation_phase is 
+    # specified so is :investigation_number
+    #
+    def validate_investigation_options(options)    
+      if options[:investigation_phase]
+        msg = ":investigation_number is required when :investigation_phase is specified."
+        validate_presenceof [:investigation_number], options, msg
       end
     end
     
