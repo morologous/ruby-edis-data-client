@@ -52,14 +52,8 @@ module EDIS
     #
     def find_investigations(options = {})
       valiate_investigation_options options
-      path = build_path '/investigation', options, [
-        :investigation_number, :investigation_phase
-      ]
-            
-      params = build_params options, [
-        :page, :investigation_type, :investigation_status  
-      ]
-      
+      path   = build_path '/investigation', options, investigation_paths
+      params = build_params options, investigation_params
       get_resource path, params, options
     end
 
@@ -91,14 +85,9 @@ module EDIS
     # :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
-      path = build_path '/document', options, [:document_id] 
-      params = build_params options, [
-        :page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number
-      ]
-      
-      append_date_params params, options, [
-        :official_received_date,  :modified_date
-      ]
+      path   = build_path '/document', options, [:document_id] 
+      params = build_params options, document_params
+      append_date_params params, options, document_date_params
       get_resource path, params, options
     end
 
@@ -132,6 +121,16 @@ module EDIS
     ######################################################################################
     private
     
+    # investigation related
+    investigation_paths  = [:investigation_number, :investigation_phase]
+    investigation_params = [:page, :investigation_type, :investigation_status]
+    
+    # document related
+    document_params      = [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
+    document_date_params = [:official_received_date,  :modified_date]
+    
+    #
+    
     #
     # Validates the requires are present in the options.  Raises 
     # ArgumentError if not.
@@ -150,8 +149,8 @@ module EDIS
     #
     def validate_investigation_options(options)    
       if options[:investigation_phase]
-        msg = ":investigation_number is required when :investigation_phase is specified."
-        validate_presenceof [:investigation_number], options, msg
+        validate_presenceof [:investigation_number], options, 
+          ":investigation_number is required when :investigation_phase is specified."
       end
     end
     
@@ -209,8 +208,7 @@ module EDIS
     end
      
     #
-    # Camelize a symbol, lifted from Rails.  
-    # TODO: monkey patch String or Symbol with this
+    # Camelize a string, lifted from Rails.  
     #
     def camelize(s, first_letter_in_uppercase = true)
       if first_letter_in_uppercase
