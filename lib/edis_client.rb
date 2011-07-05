@@ -68,7 +68,7 @@ module EDIS
     # :document_type          - the document type
     # :official_received_date - the document's official received date comparision.
     #                           this should be a hash of the following keys:
-    #                           :comparision_type => :between, :before, :after or :exact
+    #                           :type => :between, :before, :after or :exact
     #                             when the type is :exact, :before, :after then
     #                               the hash must also contain :date
     #                             for :between the hash must contain the 2 following
@@ -86,8 +86,9 @@ module EDIS
     #
     def find_documents(options = {})
       path   = build_path '/document', options, [:document_id] 
-      params = build_params options, document_params
-      append_date_params params, options, document_date_params
+      params = build_params(options, document_params).merge(
+        date_params options, document_date_params
+      )
       get_resource path, params, options
     end
 
@@ -121,15 +122,18 @@ module EDIS
     ######################################################################################
     private
     
+    # document related
+    document_params      = [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
+    document_date_params = [:official_received_date,  :modified_date]
+
     # investigation related
     investigation_paths  = [:investigation_number, :investigation_phase]
     investigation_params = [:page, :investigation_type, :investigation_status]
     
-    # document related
-    document_params      = [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
-    document_date_params = [:official_received_date,  :modified_date]
-    
-    #
+    # lock em down
+    [document_params, document_date_params, investigation_paths, investigation_params].each do |obj|
+      obj.freeze
+    end
     
     #
     # Validates the requires are present in the options.  Raises 
@@ -188,17 +192,17 @@ module EDIS
     #
     # Appends to the params date comparisions.
     #
-    def append_date_params(params, options, *optional_date_params)
-      optional_date_params.each do |date_param|
+    def build_date_params(params, options, *optional_date_params)
+      optional_date_params.inject({}) do |params, date_param|
         if options[date_param]
           comparison = options[date_param]
-          case comparison[:comparison_type]
+          case comparison[:type]
             when :between
               params[camelize(date_param)] =
                 "#BETWEEN:#{date_param[:from_date]}:#{date_param[:to_date]}"
             when :before, :after, :exact
               params[camelize(date_param)] = 
-                "#{comparison[:comparison_type].uppercase}:#{comparision[:date]}"
+                "#{comparison[:type].uppercase}:#{comparision[:date]}"
             else
               raise ArgumentError, 
                 "Unknown comparison type #{comparison[:comparison_type]}"
