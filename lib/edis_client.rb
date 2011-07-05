@@ -86,9 +86,9 @@ module EDIS
     #
     def find_documents(options = {})
       path   = build_path '/document', options, [:document_id] 
-      params = build_params(options, document_params).merge(
+      params = build_params(options, document_params).merge \
         build_date_params options, document_date_params
-      )
+
       get_resource path, params, options
     end
 
@@ -106,7 +106,8 @@ module EDIS
     end
 
     #
-    # Fetch a document.
+    # Fetch a document.  If a block is given, it will yeild passing 
+    # fragments of the stream as they are ready on the block.
     # 
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
@@ -192,7 +193,7 @@ module EDIS
     #
     # Appends to the params date comparisions.
     #
-    def build_date_params(params, options, *optional_date_params)
+    def build_date_params(params, options, optional_date_params)
       optional_date_params.inject({}) do |params, date_param|
         if options[date_param]
           comparison = options[date_param]
