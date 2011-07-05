@@ -1,7 +1,6 @@
 source "http://rubygems.org"
 
 gem "crack",   ">= 0.1.8"
-gem "faraday", ">= 0.7.3"
 
 group :development do
   gem "shoulda", ">= 0"

@@ -1,6 +1,7 @@
 require 'base64'
 require 'crack'
-require 'faraday'
+require 'net/https'
+require 'cgi'
 
 #
 # Friendly little GEM for interacting with the United States International
@@ -9,17 +10,17 @@ require 'faraday'
 module EDIS
   class Client
     #
-    # Construct a new instance. A block can be given to provide additional
-    # configuration to Faraday.
+    # Construct a new instance. If passed a block will yeild passing
+    # a config hash for proxy settings with the followind options:
     #
-    #   edis = EDIS::Client.new { |b| b.response :logger }
+    # :proxy_host
+    # :proxy_port
+    # :proxy_user
+    # :proxy_pass
     #
-    def initialize
-      @conn = Faraday.new(url: 'https://edis.usitc.gov') do |builder|
-        builder.request :url_encoded
-        builder.adapter :net_http
-        yield builder if block_given?
-      end
+    def initialize()
+      @proxy = {}
+      yeild proxy if block_given?
     end
 
     #
@@ -31,10 +32,10 @@ module EDIS
     # password - your EDIS registered password [REQUIRED]
     #
     def gen_digest(username, password)
-      resp = @conn.post "/data/secretKey/#{username}", { password: password }
-      raise ArgumentError, "Invalid credentials." unless resp.status == 200
-      results = Crack::XML.parse(resp.body)['results']
-      Base64.encode64 "#{username}:#{results['secretKey']}"
+      # resp = @conn.post "/data/secretKey/#{username}", { password: password }
+      # raise ArgumentError, "Invalid credentials." unless resp.status == 200
+      # results = Crack::XML.parse(resp.body)['results']
+      # Base64.encode64 "#{username}:#{results['secretKey']}"
     end
 
     #
@@ -164,13 +165,36 @@ module EDIS
     # rest API's results node.
     #
     def get_resource(path, options, params = {})
-      resp = @conn.get do |req|
-        req.url "/data/#{path}"
-        req.headers['Authorization'] = options[:digest] if options[:digest]
-        req.params = params if params
+      connect.start do |http|
+        path = path_with_params(path, params) unless params.empty?
+        resp = http.get("/data/#{path}")
+        Crack::XML.parse(resp.body)['results']
       end
-      Crack::XML.parse(resp.body)['results']
-    end    
+    end  
+    
+    def path_with_params(path, params)
+      "#{path}?".concat(
+        params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.reverse.join('&')
+      )
+    end
+    
+    #
+    # Get the correct net:http class based on config
+    # TODO: support proxy
+    #  
+    def connect
+      uri = URI.parse('https://edis.usitc.gov/')
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http
+    end
+    
+    #
+    # Proxy connections?
+    #
+    def proxy?
+      !@proxy.empty?
+    end
 
     #
     # Builds a path with optional resources paths if specified.
@@ -182,7 +206,7 @@ module EDIS
     end
     
     #
-    # Builds the params hash from the q
+    # Builds the params hash from the options.
     #
     def build_params(options, optional_params)
       optional_params.inject({}) do |params, param|
