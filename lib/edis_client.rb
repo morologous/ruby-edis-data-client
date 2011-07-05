@@ -87,7 +87,7 @@ module EDIS
     def find_documents(options = {})
       path   = build_path '/document', options, [:document_id] 
       params = build_params(options, document_params).merge(
-        date_params options, document_date_params
+        build_date_params options, document_date_params
       )
       get_resource path, params, options
     end
