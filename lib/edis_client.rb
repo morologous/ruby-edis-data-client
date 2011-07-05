@@ -32,10 +32,9 @@ module EDIS
     # password - your EDIS registered password [REQUIRED]
     #
     def gen_digest(username, password)
-      # resp = @conn.post "/data/secretKey/#{username}", { password: password }
-      # raise ArgumentError, "Invalid credentials." unless resp.status == 200
-      # results = Crack::XML.parse(resp.body)['results']
-      # Base64.encode64 "#{username}:#{results['secretKey']}"
+      results = post_resource "/secretKey/#{username}", { password: password }
+      raise ArgumentError, results['error'] if results['error']
+      Base64.encode64 "#{username}:#{results['secretKey']}"
     end
 
     #
@@ -89,7 +88,6 @@ module EDIS
       path   = build_path '/document', options, [:document_id] 
       params = build_params(options, document_params).merge \
         build_date_params options, document_date_params
-
       get_resource path, params, options
     end
 
@@ -166,12 +164,29 @@ module EDIS
     #
     def get_resource(path, options, params = {})
       connect.start do |http|
-        path = path_with_params(path, params) unless params.empty?
-        resp = http.get("/data/#{path}")
+        header = options[:digest] ? {'Authorization' => options[:digest]} : nil
+        path   = path_with_params(path, params) unless params.empty?
+        resp   = http.get("/data/#{path}")
         Crack::XML.parse(resp.body)['results']
       end
-    end  
+    end 
     
+    #
+    # Post resource.
+    # 
+    def post_resource(path, params)
+      connect.start do |http|
+        req  = Net::HTTP::Post.new("/data/#{path}")
+        req.set_form_data params
+        resp = http.request(req)
+        result = Crack::XML.parse(resp.body)
+        result['errors'] ? result['errors'] : result['results']
+      end
+    end
+    
+    #
+    # Add the query string to the path.
+    #
     def path_with_params(path, params)
       "#{path}?".concat(
         params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.reverse.join('&')
