@@ -11,16 +11,22 @@ module EDIS
   class Client
     #
     # Construct a new instance. If passed a block will yeild passing
-    # a config hash for proxy settings with the followind options:
+    # a config hash for proxy settings with the following options:
     #
-    # :proxy_host
-    # :proxy_port
+    # :proxy_uri
     # :proxy_user
     # :proxy_pass
     #
+    # edis = EDIS::Client.new do |proxy|
+    #   proxy[:uri]      => 'https://my.domain.com'
+    #   proxy[:user]     => 'matz' 
+    #   proxy[:password] => 'changeit'
+    # end
+    #
     def initialize()
       @proxy = {}
-      yeild proxy if block_given?
+      yeild @proxy if block_given?
+      @proxy[:uri] = URI.parse(@proxy[:uri]) if @proxy[:uri]
     end
 
     #
@@ -164,9 +170,9 @@ module EDIS
     #
     def get_resource(path, options, params = {})
       connect.start do |http|
-        header = options[:digest] ? {'Authorization' => options[:digest]} : nil
+        header = {'Authorization' => options[:digest]} if options[:digest]
         path   = path_with_params(path, params) unless params.empty?
-        resp   = http.get("/data/#{path}")
+        resp   = http.get("/data/#{path}", header || {})
         Crack::XML.parse(resp.body)['results']
       end
     end 
@@ -198,7 +204,7 @@ module EDIS
     # TODO: support proxy
     #  
     def connect
-      uri = URI.parse('https://edis.usitc.gov/')
+      uri  = URI.parse('https://edis.usitc.gov/')
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http
