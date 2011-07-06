@@ -42,7 +42,7 @@ module EDIS
     #
     def gen_digest(username, password, retain = true)
       results = post_resource "/secretKey/#{username}", { password: password }
-      raise ArgumentError, results['error'] if results['error']
+      raise ArgumentError, results['errors']['error'] if results['errors']
       digest = Base64.encode64 "#{username}:#{results['secretKey']}"
       @env[:digest] = digest if retain
       digest
@@ -137,19 +137,24 @@ module EDIS
     private
     
     # document related
-    document_params      = [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
-    document_date_params = [:official_received_date,  :modified_date]
+    def document_params 
+      [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
+    end
+    def document_date_params 
+      [:official_received_date,  :modified_date]
+    end
 
     # investigation related
-    investigation_paths  = [:investigation_number, :investigation_phase]
-    investigation_params = [:page, :investigation_type, :investigation_status]
+    def investigation_paths  
+      [:investigation_number, :investigation_phase]
+    end
+    def investigation_params 
+      [:page, :investigation_type, :investigation_status]
+    end
     
     # download released
-    download_paths       = [:document_id, :attachment_id] 
-    
-    # lock em down
-    [document_params, document_date_params, investigation_paths, investigation_params, download_paths].each do |obj|
-      obj.freeze
+    def download_paths       
+      [:document_id, :attachment_id] 
     end
     
     #
@@ -183,7 +188,7 @@ module EDIS
       connect.start do |http|
         path = path_with_params(path, params) unless params.empty?
         resp = http.get("/data/#{path}", header(options) || {})
-        Crack::XML.parse(resp.body)['results']
+        Crack::XML.parse(resp.body)
       end
     end 
     
@@ -207,7 +212,6 @@ module EDIS
         req    = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
         resp   = http.request(req)
         result = Crack::XML.parse(resp.body)
-        result['errors'] ? result['errors'] : result['results']
       end
     end
     
@@ -270,6 +274,7 @@ module EDIS
     def build_path(root, options, optional_resources)
       optional_resources.inject(root) do |path, resource|
         path << "/#{options[resource]}" if options[resource]
+        path
       end
     end
     
@@ -279,13 +284,14 @@ module EDIS
     def build_params(options, optional_params)
       optional_params.inject({}) do |params, param|
         params[camelize(param.to_s, false)] = options[param] if options[param]
+        params
       end      
     end
     
     #
     # Appends to the params date comparisions.
     #
-    def build_date_params(params, options, optional_date_params)
+    def build_date_params(options, optional_date_params)
       optional_date_params.inject({}) do |params, date_param|
         if options[date_param]
           comparison = options[date_param]
@@ -301,6 +307,7 @@ module EDIS
                 "Unknown comparison type #{comparison[:comparison_type]}"
           end
         end
+        params
       end
     end
      
