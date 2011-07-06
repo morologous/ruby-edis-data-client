@@ -182,9 +182,8 @@ module EDIS
     # 
     def post_resource(path, params)
       connect.start do |http|
-        req  = Net::HTTP::Post.new("/data/#{path}")
-        req.set_form_data params
-        resp = http.request(req)
+        req    = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
+        resp   = http.request(req)
         result = Crack::XML.parse(resp.body)
         result['errors'] ? result['errors'] : result['results']
       end
