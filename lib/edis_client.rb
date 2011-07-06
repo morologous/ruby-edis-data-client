@@ -200,13 +200,18 @@ module EDIS
     
     #
     # Get the correct net:http class based on config
-    # TODO: support proxy
     #  
     def connect
-      uri  = URI.parse('https://edis.usitc.gov/')
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http
+      klass = if proxy?
+         Net::HTTP::Proxy(proxy[:uri].host, proxy[:uri].port, proxy[:user], proxy[:password])
+      else
+        Net::HTTP
+      end
+      
+      uri = URI.parse('https://edis.usitc.gov/')
+      conn = klass.new(uri.host, uri.port)
+      conn.use_ssl = true
+      conn
     end
     
     #
