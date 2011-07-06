@@ -43,7 +43,8 @@ module EDIS
     def gen_digest(username, password, retain = true)
       results = post_resource "/secretKey/#{username}", { password: password }
       raise ArgumentError, results['errors']['error'] if results['errors']
-      digest = Base64.encode64 "#{username}:#{results['secretKey']}"
+      secret_key = results['results']['secretKey']
+      digest = Base64.encode64 "#{username}:#{secret_key}"
       @env[:digest] = digest if retain
       digest
     end
@@ -99,7 +100,7 @@ module EDIS
       path   = build_path '/document', options, [:document_id] 
       params = build_params(options, document_params).merge \
         build_date_params options, document_date_params
-      get_resource path, params, options
+      get_resource path, options, params
     end
 
     #

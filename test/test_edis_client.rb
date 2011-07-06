@@ -19,19 +19,33 @@ class TestEdisClient < Test::Unit::TestCase
     end 
     
     should "return an xml representation of an attachment" do
-      assert_not_nil @edis.find_attachments({document_id: 453695})
+      result = @edis.find_attachments({document_id: 453695})
+      assert result['results']
     end 
     
     should "return a hash with errors when an attachement can not be found" do
-      assert @edis.find_attachments({document_id: 000000}).key? "errors"
+      result = @edis.find_attachments({document_id: 000000}) 
+      assert result['errors']
     end 
 
     should "return a hash representiation of an attachment" do
-      assert_not_nil @edis.find_attachments({document_id: 453695})
+      result = @edis.find_attachments({document_id: 453695})
+      assert result['results']
     end 
     
-    should "return a hash with errors when a document can not be found" do
-      assert @edis.find_documents({document_id: 000000}).key? "errors"
+    should "return a hash with a nil documents list document can not be found" do
+      result = @edis.find_documents({document_id: 000000})
+      assert result['results']['documents'].nil?
     end 
-  end
+
+    should "return a hash representation of a documents" do
+      result = @edis.find_documents
+      assert result['results']['documents']
+    end 
+
+    should "return a hash representation of a document when given a document id" do
+      result = @edis.find_documents({document_id: 453695})
+      assert result['results']['documents']
+    end 
+  end  
 end
