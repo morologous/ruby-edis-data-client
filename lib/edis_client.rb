@@ -111,8 +111,9 @@ module EDIS
     end
 
     #
-    # Fetch a document.  If a block is given, it will yeild passing 
-    # fragments of the stream as they are ready on the block.
+    # Fetch a document.  The result is streamed and therefore
+    # clients must provide a block to read each chunk of the
+    # response.
     # 
     # Accepts an hash for the following:
     # :document_id   - the document id [REQUIRED]
@@ -121,8 +122,10 @@ module EDIS
     #                  from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
+      raise ArgumentError, "A block is required." unless block_given?
       validate_presenceof [:document_id, :attachemnt_id, :digest], options
-      {}
+      path = build_path '/download', options, download_paths
+      stream_resource(path, options) { |chunk| yeild chunck }
     end
     
     ######################################################################################
@@ -136,8 +139,11 @@ module EDIS
     investigation_paths  = [:investigation_number, :investigation_phase]
     investigation_params = [:page, :investigation_type, :investigation_status]
     
+    # download released
+    download_paths       = [:document_id, :attachment_id] 
+    
     # lock em down
-    [document_params, document_date_params, investigation_paths, investigation_params].each do |obj|
+    [document_params, document_date_params, investigation_paths, investigation_params, download_paths].each do |obj|
       obj.freeze
     end
     
@@ -170,13 +176,24 @@ module EDIS
     #
     def get_resource(path, options, params = {})
       connect.start do |http|
-        header = {'Authorization' => options[:digest]} if options[:digest]
-        path   = path_with_params(path, params) unless params.empty?
-        resp   = http.get("/data/#{path}", header || {})
+        path = path_with_params(path, params) unless params.empty?
+        resp = http.get("/data/#{path}", header(options) || {})
         Crack::XML.parse(resp.body)['results']
       end
     end 
     
+    #
+    # Invokes the api at the given path and streams the result, in chunks, to
+    # the block.  
+    #
+    def stream_resource(path, options)
+      connect.start do |http|
+        http.get("/data/#{path}", header(options) || {}) do |chunk| 
+          yeild chunk 
+        end
+      end
+    end 
+
     #
     # Post resource.
     # 
@@ -205,6 +222,14 @@ module EDIS
       uri  = URI.parse('https://edis.usitc.gov/')
       http = net_http_class.new(uri.host, uri.port)
       http.use_ssl = true and http
+    end
+    
+    #
+    # Creates the authorization header if the digest is present in the 
+    # options
+    #
+    def header(options)
+      {'Authorization' => options[:digest]} if options[:digest]
     end
     
     #
