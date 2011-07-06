@@ -24,23 +24,28 @@ module EDIS
     # end
     #
     def initialize()
-      @proxy = {}
-      yeild @proxy if block_given?
-      @proxy[:uri] = URI.parse(@proxy[:uri]) if @proxy[:uri]
+      @env = {proxy: {}}
+      yeild @env[:proxy] if block_given?
+      @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri]) if @env[:proxy][:uri]
     end
 
     #
     # Generates a digest for api usage.  Users must be preregistered with
-    # the edis app.
+    # the edis app.  The digest can be retained (default) for the life of this
+    # instance (session), ensuring all subseqent api calls pass the digest to
+    # the endpoint.  In this mode clients need not worry about retaining
+    # and passing this to other api calls.
     #
     # Args:
     # username - your EDIS registered username [REQUIRED]
     # password - your EDIS registered password [REQUIRED]
     #
-    def gen_digest(username, password)
+    def gen_digest(username, password, retain = true)
       results = post_resource "/secretKey/#{username}", { password: password }
       raise ArgumentError, results['error'] if results['error']
-      Base64.encode64 "#{username}:#{results['secretKey']}"
+      digest = Base64.encode64 "#{username}:#{results['secretKey']}"
+      @env[:digest] = digest if retain
+      digest
     end
 
     #
@@ -226,17 +231,25 @@ module EDIS
     
     #
     # Creates the authorization header if the digest is present in the 
-    # options
+    # options or if it was specified as being retained when gen_disgest
+    # was called.
     #
     def header(options)
-      {'Authorization' => options[:digest]} if options[:digest]
+      digest = if options[:digest]
+        options[:digest]
+      elsif @env[:digest]
+        @env[:digest]
+      else 
+        false
+      end
+      {'Authorization' => digest} if digest
     end
     
     #
     # Proxy connections?
     #
     def proxy?
-      !@proxy.empty?
+      !@env[:proxy].empty?
     end
 
     #
@@ -244,6 +257,7 @@ module EDIS
     #
     def net_http_class
       if proxy?
+        proxy = @env[:proxy]
         Net::HTTP::Proxy(proxy[:uri].host, proxy[:uri].port, proxy[:user], proxy[:password])
       else
         Net::HTTP
