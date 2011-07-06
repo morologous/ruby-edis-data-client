@@ -202,16 +202,9 @@ module EDIS
     # Get the correct net:http class based on config
     #  
     def connect
-      klass = if proxy?
-         Net::HTTP::Proxy(proxy[:uri].host, proxy[:uri].port, proxy[:user], proxy[:password])
-      else
-        Net::HTTP
-      end
-      
-      uri = URI.parse('https://edis.usitc.gov/')
-      conn = klass.new(uri.host, uri.port)
-      conn.use_ssl = true
-      conn
+      uri  = URI.parse('https://edis.usitc.gov/')
+      http = net_http_class.new(uri.host, uri.port)
+      http.use_ssl = true and http
     end
     
     #
@@ -219,6 +212,17 @@ module EDIS
     #
     def proxy?
       !@proxy.empty?
+    end
+
+    #
+    # Get the correct class based on proxy settings.
+    #
+    def net_http_class
+      if proxy?
+        Net::HTTP::Proxy(proxy[:uri].host, proxy[:uri].port, proxy[:user], proxy[:password])
+      else
+        Net::HTTP
+      end
     end
 
     #
