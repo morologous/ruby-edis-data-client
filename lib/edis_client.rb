@@ -125,7 +125,7 @@ module EDIS
       raise ArgumentError, "A block is required." unless block_given?
       validate_presenceof [:document_id, :attachemnt_id, :digest], options
       path = build_path '/download', options, download_paths
-      stream_resource(path, options) { |chunk| yeild chunck }
+      stream_resource(path, options) { |chunk| yeild chunk }
     end
     
     ######################################################################################
