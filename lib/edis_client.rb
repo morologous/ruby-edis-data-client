@@ -1,7 +1,8 @@
 require 'base64'
+require 'cgi'
 require 'crack'
 require 'net/https'
-require 'cgi'
+require 'recursive_open_struct'
 
 #
 # Friendly little GEM for interacting with the United States International
@@ -42,8 +43,8 @@ module EDIS
     #
     def gen_digest(username, password, retain = true)
       results = post_resource "/secretKey/#{username}", { password: password }
-      raise ArgumentError, results['errors']['error'] if results['errors']
-      secret_key = results['results']['secretKey']
+      raise ArgumentError, results.errors if results.errors
+      secret_key = results.results.secretKey
       digest = Base64.encode64 "#{username}:#{secret_key}"
       @env[:digest] = digest if retain
       digest
@@ -128,7 +129,7 @@ module EDIS
     #                  from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
-      raise ArgumentError, "A block is required." unless block_given?
+      raise ArgumentError, "Missing block." unless block_given?
       validate_presenceof [:document_id, :attachemnt_id, :digest], options
       path = build_path '/download', options, download_paths
       stream_resource(path, options) { |chunk| yeild chunk }
@@ -188,8 +189,8 @@ module EDIS
     def get_resource(path, options, params = {})
       connect.start do |http|
         path = path_with_params(path, params) unless params.empty?
-        resp = http.get("/data/#{path}", header(options) || {})
-        Crack::XML.parse(resp.body)
+        xml  = http.get("/data/#{path}", header(options) || {}).body
+        RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
     end 
     
@@ -210,9 +211,9 @@ module EDIS
     # 
     def post_resource(path, params)
       connect.start do |http|
-        req    = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
-        resp   = http.request(req)
-        result = Crack::XML.parse(resp.body)
+        req = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
+        xml = http.request(req).body
+        RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
     end
     
@@ -220,9 +221,8 @@ module EDIS
     # Add the query string to the path.
     #
     def path_with_params(path, params)
-      "#{path}?".concat(
+      "#{path}?".concat \
         params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.reverse.join('&')
-      )
     end
     
     #
