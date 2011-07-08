@@ -98,7 +98,7 @@ module EDIS
     # :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
-      path   = build_path '/document', options, [:document_id] 
+      path   = build_path '/document', options, [:document_id]
       params = build_params(options, document_params).merge \
         build_date_params options, document_date_params
       get_resource path, options, params
@@ -134,33 +134,33 @@ module EDIS
       path = build_path '/download', options, download_paths
       stream_resource(path, options) { |chunk| yeild chunk }
     end
-    
+
     ######################################################################################
     private
-    
+
     # document related
-    def document_params 
+    def document_params
       [:page, :firm_org, :document_type, :security_level, :investigation_phase, :investigation_number]
     end
-    def document_date_params 
+    def document_date_params
       [:official_received_date,  :modified_date]
     end
 
     # investigation related
-    def investigation_paths  
+    def investigation_paths
       [:investigation_number, :investigation_phase]
     end
-    def investigation_params 
+    def investigation_params
       [:page, :investigation_type, :investigation_status]
     end
-    
+
     # download released
-    def download_paths       
-      [:document_id, :attachment_id] 
+    def download_paths
+      [:document_id, :attachment_id]
     end
-    
+
     #
-    # Validates the requires are present in the options.  Raises 
+    # Validates the requires are present in the options.  Raises
     # ArgumentError if not.
     #
     def validate_presenceof(requires, options, msg = nil)
@@ -172,16 +172,16 @@ module EDIS
     end
 
     #
-    # Validates that when :investigation_phase is 
+    # Validates that when :investigation_phase is
     # specified so is :investigation_number
     #
-    def validate_investigation_options(options)    
+    def validate_investigation_options(options)
       if options[:investigation_phase]
-        validate_presenceof [:investigation_number], options, 
+        validate_presenceof [:investigation_number], options,
           ":investigation_number is required when :investigation_phase is specified."
       end
     end
-    
+
     #
     # Invokes the api at the given path.  Returns a hash rooted at the
     # rest API's results node.
@@ -192,23 +192,23 @@ module EDIS
         xml  = http.get("/data/#{path}", header(options) || {}).body
         RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
-    end 
-    
+    end
+
     #
     # Invokes the api at the given path and streams the result, in chunks, to
-    # the block.  
+    # the block.
     #
     def stream_resource(path, options)
       connect.start do |http|
-        http.get("/data/#{path}", header(options) || {}) do |chunk| 
-          yeild chunk 
+        http.get("/data/#{path}", header(options) || {}) do |chunk|
+          yeild chunk
         end
       end
-    end 
+    end
 
     #
     # Post resource.
-    # 
+    #
     def post_resource(path, params)
       connect.start do |http|
         req = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
@@ -216,7 +216,7 @@ module EDIS
         RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
     end
-    
+
     #
     # Add the query string to the path.
     #
@@ -224,18 +224,18 @@ module EDIS
       "#{path}?".concat \
         params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.reverse.join('&')
     end
-    
+
     #
     # Get the correct net:http class based on config
-    #  
+    #
     def connect
       uri  = URI.parse('https://edis.usitc.gov/')
       http = net_http_class.new(uri.host, uri.port)
       http.use_ssl = true and http
     end
-    
+
     #
-    # Creates the authorization header if the digest is present in the 
+    # Creates the authorization header if the digest is present in the
     # options or if it was specified as being retained when gen_disgest
     # was called.
     #
@@ -244,12 +244,12 @@ module EDIS
         options[:digest]
       elsif @env[:digest]
         @env[:digest]
-      else 
+      else
         false
       end
       {'Authorization' => digest} if digest
     end
-    
+
     #
     # Proxy connections?
     #
@@ -278,7 +278,7 @@ module EDIS
         path
       end
     end
-    
+
     #
     # Builds the params hash from the options.
     #
@@ -286,9 +286,9 @@ module EDIS
       optional_params.inject({}) do |params, param|
         params[camelize(param.to_s, false)] = options[param] if options[param]
         params
-      end      
+      end
     end
-    
+
     #
     # Appends to the params date comparisions.
     #
@@ -311,9 +311,9 @@ module EDIS
         params
       end
     end
-     
+
     #
-    # Camelize a string, lifted from Rails.  
+    # Camelize a string, lifted from Rails.
     #
     def camelize(s, first_letter_in_uppercase = true)
       if first_letter_in_uppercase
@@ -321,6 +321,6 @@ module EDIS
       else
         s.to_s[0].chr.downcase + camelize(s)[1..-1]
       end
-    end    
+    end
   end
 end
