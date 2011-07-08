@@ -1,6 +1,6 @@
 require 'base64'
 require 'cgi'
-require 'crack'
+require 'crack/xml'
 require 'net/https'
 require 'recursive_open_struct'
 
@@ -113,7 +113,7 @@ module EDIS
     # :digest      - The authorization digest returned from gen_digest
     #
     def find_attachments(options = {})
-      validate_presenceof [:document_id], options
+      validate_presence_of [:document_id], options
       get_resource "/attachment/#{options[:document_id]}", options
     end
 
@@ -130,7 +130,7 @@ module EDIS
     #
     def download_attachment(options = {})
       raise ArgumentError, "Missing block." unless block_given?
-      validate_presenceof [:document_id, :attachemnt_id, :digest], options
+      validate_presence_of [:document_id, :attachemnt_id, :digest], options
       path = build_path '/download', options, download_paths
       stream_resource(path, options) { |chunk| yeild chunk }
     end
@@ -163,7 +163,7 @@ module EDIS
     # Validates the requires are present in the options.  Raises
     # ArgumentError if not.
     #
-    def validate_presenceof(requires, options, msg = nil)
+    def validate_presence_of(requires, options, msg = nil)
       requires.each do |required|
         unless options[required]
           raise ArgumentError, msg || "Missing one or more required options #{requires}"
@@ -177,14 +177,13 @@ module EDIS
     #
     def validate_investigation_options(options)
       if options[:investigation_phase]
-        validate_presenceof [:investigation_number], options,
+        validate_presence_of [:investigation_number], options,
           ":investigation_number is required when :investigation_phase is specified."
       end
     end
 
     #
-    # Invokes the api at the given path.  Returns a hash rooted at the
-    # rest API's results node.
+    # Get the resource at the given path.
     #
     def get_resource(path, options, params = {})
       connect.start do |http|
@@ -195,7 +194,7 @@ module EDIS
     end
 
     #
-    # Invokes the api at the given path and streams the result, in chunks, to
+    # # Get the resource at the given path streaming the result, in chunks, to
     # the block.
     #
     def stream_resource(path, options)
@@ -218,7 +217,7 @@ module EDIS
     end
 
     #
-    # Add the query string to the path.
+    # Generate a query string reprsentation of the params and append to the path.
     #
     def path_with_params(path, params)
       "#{path}?".concat \
