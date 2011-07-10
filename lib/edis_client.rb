@@ -130,9 +130,10 @@ module EDIS
     #
     def download_attachment(options = {})
       raise ArgumentError, "Missing block." unless block_given?
-      validate_presence_of [:document_id, :attachemnt_id, :digest], options
+      validate_download options
       path = build_path '/download', options, download_paths
-      stream_resource(path, options) { |chunk| yeild chunk }
+      puts "#{path}"
+      stream_resource(path, options) { |chunk| yield chunk }
     end
 
     ######################################################################################
@@ -171,6 +172,23 @@ module EDIS
       end
     end
 
+   #
+   # Validate that is digest is available and the required fields are present
+   #
+   def validate_download(options)
+     validate_digest options 
+     validate_presence_of [:document_id, :attachment_id], options        
+   end
+
+    #
+    # Validate either the digest is specified or that it is set in the env.
+    #
+    def validate_digest(options)
+      unless options[:digest] || @env[:digest]
+        raise ArgumentError, "A digest is required.  Please use gen_digest."
+      end      
+    end
+
     #
     # Validates that when :investigation_phase is
     # specified so is :investigation_number
@@ -194,13 +212,13 @@ module EDIS
     end
 
     #
-    # # Get the resource at the given path streaming the result, in chunks, to
+    # Get the resource at the given path streaming the result, in chunks, to
     # the block.
     #
     def stream_resource(path, options)
       connect.start do |http|
         http.get("/data/#{path}", header(options) || {}) do |chunk|
-          yeild chunk
+          yield chunk
         end
       end
     end
