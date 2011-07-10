@@ -9,16 +9,16 @@ class TestFindDocumentsClient < Test::Unit::TestCase
     should "return a nil documents list if document cannot be found" do
       result = @edis.find_documents({document_id: 000000})
       assert result.results.documents.nil?
-    end 
+    end
 
     should "return a array of documents" do
       result = @edis.find_documents
       assert result.results.documents
-    end 
+    end
 
     should "return a document when given a document id" do
       result = @edis.find_documents({document_id: 453695})
       assert result.results.documents
-    end 
-  end  
+    end
+  end
 end

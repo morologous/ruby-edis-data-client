@@ -177,7 +177,7 @@ module EDIS
    #
    def validate_download(options)
      validate_digest options 
-     validate_presence_of [:document_id, :attachment_id], options        
+     validate_presence_of [:document_id, :attachment_id], options
    end
 
     #
@@ -186,7 +186,7 @@ module EDIS
     def validate_digest(options)
       unless options[:digest] || @env[:digest]
         raise ArgumentError, "A digest is required.  Please use gen_digest."
-      end      
+      end
     end
 
     #
