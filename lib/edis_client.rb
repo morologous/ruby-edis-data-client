@@ -24,9 +24,9 @@ module EDIS
     #   proxy[:password] = 'changeit'
     # end
     #
-    def initialize()
+    def initialize(proxy_config = nil)
       @env = {proxy: {}}
-      yield @env[:proxy] if block_given?
+      @env[:proxy] = proxy_config unless proxy_config.nil?
       @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri]) if @env[:proxy][:uri]
     end
 
