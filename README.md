@@ -8,7 +8,7 @@ Documentation on the EDIS data webserivce can be found here
 Before running the tests via Rake you will need to add ./test/config.rb with a hash with the following keys
 
 ```ruby
-CREDS = { username: 'sean', password: 'password' }
+CREDS = { username => 'sean', password => 'password' }
 ```
 
 ## Contributing to edis_client
