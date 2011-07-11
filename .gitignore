@@ -3,6 +3,5 @@
 .DS_Store
 pkg
 /test/config.rb
-Gemfile.lock
 .idea
 *.iml
