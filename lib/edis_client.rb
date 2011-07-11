@@ -19,14 +19,14 @@ module EDIS
     # :proxy_pass
     #
     # edis = EDIS::Client.new do |proxy|
-    #   proxy[:uri]      => 'https://my.domain.com'
-    #   proxy[:user]     => 'matz' 
-    #   proxy[:password] => 'changeit'
+    #   proxy[:uri]      = 'https://my.domain.com'
+    #   proxy[:user]     = 'matz'
+    #   proxy[:password] = 'changeit'
     # end
     #
     def initialize()
       @env = {proxy: {}}
-      yeild @env[:proxy] if block_given?
+      yield @env[:proxy] if block_given?
       @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri]) if @env[:proxy][:uri]
     end
 
