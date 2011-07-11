@@ -1,0 +1,2 @@
+# sets version of ruby used by RVM for this project
+rvm 1.9.2
