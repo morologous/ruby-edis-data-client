@@ -18,16 +18,18 @@ module EDIS
     # :proxy_user
     # :proxy_pass
     #
-    # edis = EDIS::Client.new do |proxy|
-    #   proxy[:uri]      = 'https://my.domain.com'
-    #   proxy[:user]     = 'matz'
-    #   proxy[:password] = 'changeit'
-    # end
+    # edis = EDIS::Client.new({
+    #   :uri      => 'https://my.domain.com',
+    #   :user     => 'matz',
+    #   :password => 'changeit'
+    # })
     #
-    def initialize(proxy_config = nil)
-      @env = {proxy: {}}
-      @env[:proxy] = proxy_config unless proxy_config.nil?
-      @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri]) if @env[:proxy][:uri]
+    def initialize(proxy = nil)
+      @env = {}
+      unless proxy.nil?
+        @env[:proxy] = proxy
+        @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri])
+      end
     end
 
     #
@@ -271,7 +273,7 @@ module EDIS
     # Proxy connections?
     #
     def proxy?
-      !@env[:proxy].empty?
+      @env.key? :proxy
     end
 
     #
