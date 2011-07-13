@@ -8,16 +8,13 @@ class TestProxySupportClient < Test::Unit::TestCase
       @expected_port = 124
       @expected_user = 'matz'
       @expected_password = 'changeit'
-
-      config = {
+      @client = EDIS::Client.new(
         proxy: {
           uri: "https://#@expected_host:#@expected_port",
           user: @expected_user,
           password: @expected_password        
-        }
-      }
-
-      @client = EDIS::Client.new config
+        }      
+      )
     end
 
     should "return a proxy http class from net_http_class" do
