@@ -1,7 +1,7 @@
 require 'helper'
 
 class TestDownloadAttachmentClient < Test::Unit::TestCase
-  context "when an edis client is asked to download an attach it" do
+  context "when an edis client is asked to download an attachment it" do
     setup do
       @edis = EDIS::Client.new
     end

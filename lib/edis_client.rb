@@ -20,11 +20,11 @@ module EDIS
     # :timeout     - Defaults to 10s
     #
     # edis = EDIS::Client.new({
-    #   :timeout => 5,
-    #   :proxy   => {  
-    #     :uri      => 'https://my.domain.com',
-    #     :user     => 'matz',
-    #     :password => 'changeit'
+    #   timeout: ,
+    #   proxy: {  
+    #     uri:      'https://my.domain.com',
+    #     user:     'matz',
+    #     password: 'changeit'
     #   }
     # })
     #
@@ -272,7 +272,7 @@ module EDIS
       else
         false
       end
-      {'Authorization' => digest} if digest
+      {'Authorization:' => "Basic #{digest}"} if digest
     end
 
     #
