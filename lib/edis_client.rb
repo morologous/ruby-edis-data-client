@@ -17,19 +17,24 @@ module EDIS
     # :proxy_uri
     # :proxy_user
     # :proxy_pass
+    # :timeout     - Defaults to 10s
     #
     # edis = EDIS::Client.new({
-    #   :uri      => 'https://my.domain.com',
-    #   :user     => 'matz',
-    #   :password => 'changeit'
+    #   :timeout => 5,
+    #   :proxy   => {  
+    #     :uri      => 'https://my.domain.com',
+    #     :user     => 'matz',
+    #     :password => 'changeit'
+    #   }
     # })
     #
-    def initialize(proxy = nil)
-      @env = {}
-      unless proxy.nil?
-        @env[:proxy] = proxy
-        @env[:proxy][:uri] = URI.parse(@env[:proxy][:uri])
+    def initialize(config = {})
+      config[:timeout] = 10 unless config[:timeout]
+      if config[:proxy]
+        config[:proxy][:uri] = URI.parse(config[:proxy][:uri])
       end
+      
+      @config = config
     end
 
     #
@@ -48,7 +53,7 @@ module EDIS
       raise ArgumentError, results.errors if results.errors
       secret_key = results.results.secretKey
       digest = Base64.encode64 "#{username}:#{secret_key}"
-      @env[:digest] = digest if retain
+      @config[:digest] = digest if retain
       digest
     end
 
@@ -186,7 +191,7 @@ module EDIS
     # Validate either the digest is specified or that it is set in the env.
     #
     def validate_digest(options)
-      unless options[:digest] || @env[:digest]
+      unless options[:digest] || @config[:digest]
         raise ArgumentError, "A digest is required.  Please use gen_digest."
       end
     end
@@ -250,7 +255,8 @@ module EDIS
     def connect
       uri  = URI.parse('https://edis.usitc.gov/')
       http = net_http_class.new(uri.host, uri.port)
-      http.use_ssl = true and http
+      http.use_ssl = true 
+      http.read_timeout = @config[:timeout] and http
     end
 
     #
@@ -261,8 +267,8 @@ module EDIS
     def header(options)
       digest = if options[:digest]
         options[:digest]
-      elsif @env[:digest]
-        @env[:digest]
+      elsif @config[:digest]
+        @config[:digest]
       else
         false
       end
@@ -273,7 +279,7 @@ module EDIS
     # Proxy connections?
     #
     def proxy?
-      @env.key? :proxy
+      @config.key? :proxy
     end
 
     #
@@ -281,7 +287,7 @@ module EDIS
     #
     def net_http_class
       if proxy?
-        proxy = @env[:proxy]
+        proxy = @config[:proxy]
         Net::HTTP::Proxy(proxy[:uri].host, proxy[:uri].port, proxy[:user], proxy[:password])
       else
         Net::HTTP
