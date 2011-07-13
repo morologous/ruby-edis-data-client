@@ -272,7 +272,7 @@ module EDIS
       else
         false
       end
-      {'Authorization:' => "Basic #{digest}"} if digest
+      {'Authorization' => "Basic #{digest}"} if digest
     end
 
     #
