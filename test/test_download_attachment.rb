@@ -66,7 +66,8 @@ class TestDownloadAttachmentClient < Test::Unit::TestCase
       }
 
       @edis.download_attachment(options) do |chunk|
-        puts "#{chunk}"
+        # figure out how to test this.
+        # get the md5 of the doc and test that way.
       end
     end
   end

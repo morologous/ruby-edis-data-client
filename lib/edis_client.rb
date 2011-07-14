@@ -52,7 +52,7 @@ module EDIS
       results = post_resource "/secretKey/#{username}", { password: password }
       raise ArgumentError, results.errors if results.errors
       secret_key = results.results.secretKey
-      digest = Base64.encode64 "#{username}:#{secret_key}"
+      digest = Base64.strict_encode64 "#{username}:#{secret_key}"
       @config[:digest] = digest if retain
       digest
     end
@@ -139,7 +139,6 @@ module EDIS
       raise ArgumentError, "Missing block." unless block_given?
       validate_download options
       path = build_path '/download', options, download_paths
-      puts "#{path}"
       stream_resource(path, options) { |chunk| yield chunk }
     end
 
