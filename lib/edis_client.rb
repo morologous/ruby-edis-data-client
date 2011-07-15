@@ -11,22 +11,25 @@ require 'recursive_open_struct'
 module EDIS
   class Client
     #
-    # Construct a new instance. If passed a block will yeild passing
-    # a config hash for proxy settings with the following options:
+    # Construct a new instance. The following options are available:
     #
-    # :proxy_uri
-    # :proxy_user
-    # :proxy_pass
-    # :timeout     - Defaults to 10s
+    # - :proxy_uri
+    # - :proxy_user
+    # - :proxy_pass
+    # - :timeout     - Defaults to 10s
     #
-    # edis = EDIS::Client.new({
-    #   timeout: ,
-    #   proxy: {  
-    #     uri:      'https://my.domain.com',
-    #     user:     'matz',
-    #     password: 'changeit'
-    #   }
-    # })
+    # == Example:
+    #
+    #  'require 'edis_client'
+    #   
+    #  edis = EDIS::Client.new({
+    #    timeout: 5s,
+    #    proxy: {  
+    #      uri:      'https://my.domain.com',
+    #      user:     'matz',
+    #      password: 'changeit'
+    #    }
+    #  })
     #
     def initialize(config = {})
       config[:timeout] = 10 unless config[:timeout]
@@ -44,9 +47,9 @@ module EDIS
     # the endpoint.  In this mode clients need not worry about retaining
     # and passing this to other api calls.
     #
-    # Args:
-    # username - your EDIS registered username [REQUIRED]
-    # password - your EDIS registered password [REQUIRED]
+    # - :username - your EDIS registered username [REQUIRED]
+    # - :password - your EDIS registered password [REQUIRED]
+    # - :retain   - retain your digest for subsequent api calls [Defaults to true]
     #
     def gen_digest(username, password, retain = true)
       results = post_resource "/secretKey/#{username}", { password: password }
@@ -58,17 +61,14 @@ module EDIS
     end
 
     #
-    # Find investigations.
+    # Find investigations.  The following options are available:
     #
-    # Accepts an hash for the following options:
-    # :investigation_number - the investigation number.
-    # :investigation_phase  - the name of the investigation phase.
-    #                         :investgation_number is required when
-    #                         using this option
-    # :investigation_type   - the name of the investigation type
-    # :investigation_status - the name of the investigation status
-    # :page                 - the page number for result pagination.
-    # :digest               - the authorization digest returned from gen_digest
+    # - :investigation_number - the investigation number.
+    # - :investigation_phase  - the name of the investigation phase.  :investgation_number is required when using this option
+    # - :investigation_type   - the name of the investigation type
+    # - :investigation_status - the name of the investigation status
+    # - :page                 - the page number for result pagination.
+    # - :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
       valiate_investigation_options options
@@ -78,31 +78,29 @@ module EDIS
     end
 
     #
-    # Fetch document metadata.
+    # Fetch document metadata.  The following options are available:
     #
-    # Accepts an hash for the following options:
-    # :document_id            - the document id.
-    # :security_level         - the security level name.
-    # :investigation_number   - the investigation number.
-    # :investigation_phase    - the name of the investigation phase.
-    # :document_type          - the document type
-    # :official_received_date - the document's official received date comparision.
-    #                           this should be a hash of the following keys:
+    # - :document_id            - the document id.
+    # - :security_level         - the security level name.
+    # - :investigation_number   - the investigation number.
+    # - :investigation_phase    - the name of the investigation phase.
+    # - :document_type          - the document type
+    # - :official_received_date - the document's official received date comparision. this should be a hash of the following keys:
     #                           :type => :between, :before, :after or :exact
     #                             when the type is :exact, :before, :after then
     #                               the hash must also contain :date
     #                             for :between the hash must contain the 2 following
     #                               keys :from_date, :to_date
-    # :modified_date          - the docuemnt's last modified date comparision.
+    # - :modified_date          - the docuemnt's last modified date comparision.
     #                           this should be a hash of the following keys:
     #                           :comparision_type => :between, :before, :after or :exact
     #                             when the type is :exact, :before, :after then
     #                               the hash must also contain :date
     #                             for :between the hash must contain the 2 following
     #                               keys :from_date, :to_date
-    # :firm_org               - the firm that filed the doc
-    # :page                   - the page number for result pagination.
-    # :digest                 - the authorization digest returned from gen_digest
+    # - :firm_org               - the firm that filed the doc
+    # - :page                   - the page number for result pagination.
+    # - :digest                 - the authorization digest returned from gen_digest
     #
     def find_documents(options = {})
       path   = build_path '/document', options, [:document_id]
@@ -113,11 +111,10 @@ module EDIS
 
     #
     # Fetch a document's attachments.  Returns a hash rooted at the
-    # rest API's results node.
+    # rest API's results node. Accepts an hash for the following options:
     #
-    # Accepts an hash for the following options:
-    # :document_id - the document id [REQUIRED]
-    # :digest      - The authorization digest returned from gen_digest
+    # - :document_id - the document id [REQUIRED]
+    # - :digest      - The authorization digest returned from gen_digest
     #
     def find_attachments(options = {})
       validate_presence_of [:document_id], options
@@ -127,13 +124,11 @@ module EDIS
     #
     # Fetch a document.  The result is streamed and therefore
     # clients must provide a block to read each chunk of the
-    # response.
-    # 
-    # Accepts an hash for the following:
-    # :document_id   - the document id [REQUIRED]
-    # :attachment_id - the actual attachment id [REQUIRED]
-    # :digest        - the authorization digest returned 
-    #                  from gen_digest [REQUIRED]
+    # response.  The following options are available:
+    #
+    # - :document_id   - the document id [REQUIRED]
+    # - :attachment_id - the actual attachment id [REQUIRED]
+    # - :digest        - the authorization digest returned from gen_digest [REQUIRED]
     #
     def download_attachment(options = {})
       raise ArgumentError, "Missing block." unless block_given?
@@ -143,7 +138,7 @@ module EDIS
     end
 
     ######################################################################################
-    private
+    private # :nodoc:
 
     # document related
     def document_params

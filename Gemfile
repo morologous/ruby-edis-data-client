@@ -2,6 +2,7 @@ source "http://rubygems.org"
 
 gem "crack",                 ">= 0.1.8"
 gem "recursive-open-struct", ">= 0.2.1"
+gem "rdoc"
 
 group :development do
   gem "shoulda", ">= 0"
