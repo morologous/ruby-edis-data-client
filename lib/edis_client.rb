@@ -71,7 +71,7 @@ module EDIS
     # - :digest               - the authorization digest returned from gen_digest
     #
     def find_investigations(options = {})
-      valiate_investigation_options options
+      validate_investigation_options options
       path   = build_path '/investigation', options, investigation_paths
       params = build_params options, investigation_params
       get_resource path, params, options
