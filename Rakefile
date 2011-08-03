@@ -17,10 +17,11 @@ Jeweler::Tasks.new do |gem|
   gem.name = "edis_client"
   gem.homepage = "https://github.com/morologous/ruby-edis-data-client"
   gem.license = "Apache"
-  gem.summary = %Q{The EDIS Data Webservice is a service provided by the United States International Trade Commission.}
-  gem.description = %Q{TODO: longer description of your gem}
-  gem.email = "sean.mcdaniel@me.com"
-  gem.authors = ["Sean McDaniel"]
+  gem.summary = %Q{Ruby client to the EDIS Data Webservice, a service provided by the United States International Trade Commission.}
+  gem.description = "Provides easy access to the USITC's EDIS data web service (contains international trade investigation data) via an object spewing ruby class - no fuss no muss and definately no XML! This gem is not officially supported by the USITC. This gem is pretty experimental and should see modifications in the near future."
+  gem.authors = ['Sean McDaniel', 'Carlos Fernandez'] #mostly sean
+  gem.files = 'lib/edis_client.rb'
+  gem.version = '0.0.3'
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
