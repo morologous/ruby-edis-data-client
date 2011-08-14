@@ -289,11 +289,17 @@ module EDIS
     end
 
     #
-    # Builds a path with optional resources paths if specified.
+    # Builds a path with optional resources paths if specified.  Removes any
+    # options from options hash if they are added to the path
     #
     def build_path(root, options, optional_resources)
       optional_resources.inject(root) do |path, resource|
-        path << "/#{options[resource]}" if options[resource]
+        if options[resource]
+          path << "/#{options[resource]}" if options[resource]
+          # clear out any options appended to path - so they aren't used by
+          # anything else
+          options.delete resource
+        end
         path
       end
     end
