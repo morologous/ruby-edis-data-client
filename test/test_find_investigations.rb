@@ -6,8 +6,14 @@ class TestFindInvestigationsClient < Test::Unit::TestCase
       @edis = EDIS::Client.new
     end
 
+    teardown do
+      FakeWeb.clean_registry
+    end
+
     should "return a nil investigations list if investigation cannot be found" do
-      result = @edis.find_investigations({investigation_number: '000000'})
+      inv_num = '000000'
+      FakeWeb.register_uri(:get, "https://edis.usitc.gov/data/investigation/#{inv_num}", :body => '<results><investigations/></results>')
+      result = @edis.find_investigations({investigation_number: inv_num})
       assert result.results.investigations.nil?
     end
 
