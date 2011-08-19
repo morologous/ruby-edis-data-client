@@ -1,5 +1,10 @@
 require 'rubygems'
 require 'bundler'
+if ENV['COVERAGE']
+  require 'simplecov'
+  SimpleCov.start('rails')
+end
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e
