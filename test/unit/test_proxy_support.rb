@@ -15,6 +15,12 @@ class TestProxySupportClient < Test::Unit::TestCase
           password: @expected_password        
         }      
       )
+      FakeWeb.allow_net_connect = false
+    end
+
+    teardown do
+      FakeWeb.allow_net_connect = true
+      FakeWeb.clean_registry
     end
 
     should "return a proxy http class from net_http_class" do

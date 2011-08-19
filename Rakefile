@@ -33,6 +33,20 @@ Rake::TestTask.new(:test) do |test|
   test.verbose = true
 end
 
+require 'rake/testtask'
+Rake::TestTask.new(:test_unit) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/unit/**/test_*.rb'
+  test.verbose = true
+end
+
+require 'rake/testtask'
+Rake::TestTask.new(:test_integration) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/integration/**/test_*.rb'
+  test.verbose = true
+end
+
 require 'rcov/rcovtask'
 Rcov::RcovTask.new do |test|
   test.libs << 'test'

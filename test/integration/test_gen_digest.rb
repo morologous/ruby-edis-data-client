@@ -3,13 +3,7 @@ require 'helper'
 class TestGenDigestClient < Test::Unit::TestCase
   context "when an edis client is asked to geneate a digest it" do
     setup do
-      FakeWeb.allow_net_connect = false
       @edis = EDIS::Client.new
-    end
-
-    teardown do
-      FakeWeb.allow_net_connect = true
-      FakeWeb.clean_registry
     end
 
     should "raise an ArugmentError for unregistered users" do

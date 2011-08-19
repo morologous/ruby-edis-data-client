@@ -6,10 +6,6 @@ class TestFindAttachmentsClient < Test::Unit::TestCase
       @edis = EDIS::Client.new
     end
 
-    should "thorw ArgumentError when document_id is missing" do
-      assert_raise(ArgumentError) { @edis.find_attachments({}) }
-    end
-
     should "return errors when an attachement can not be found" do
       result = @edis.find_attachments({document_id: 000000}) 
       assert result.errors

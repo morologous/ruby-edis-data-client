@@ -207,7 +207,7 @@ module EDIS
     def get_resource(path, options, params = {})
       connect.start do |http|
         path = path_with_params(path, params) unless params.empty?
-        xml  = http.get("/data/#{path}", header(options) || {}).body
+        xml  = http.get("/data#{path}", header(options) || {}).body
         RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
     end
@@ -218,7 +218,7 @@ module EDIS
     #
     def stream_resource(path, options)
       connect.start do |http|
-        http.get("/data/#{path}", header(options) || {}) do |chunk|
+        http.get("/data#{path}", header(options) || {}) do |chunk|
           yield chunk
         end
       end
@@ -229,7 +229,7 @@ module EDIS
     #
     def post_resource(path, params)
       connect.start do |http|
-        req = Net::HTTP::Post.new("/data/#{path}") and req.set_form_data params
+        req = Net::HTTP::Post.new("/data#{path}") and req.set_form_data params
         xml = http.request(req).body
         RecursiveOpenStruct.new Crack::XML.parse(xml)
       end
