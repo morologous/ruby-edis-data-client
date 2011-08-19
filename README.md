@@ -5,7 +5,15 @@ The EDIS Data Webservice is a service provided by the United States Internationa
 Documentation on the EDIS data webserivce can be found here
 
 ## Testing
-Before running the tests via Rake you will need to add ./test/config.rb with a hash with the following keys
+Tests are divided between unit and integration.  Unit tests use FakeWeb to mock
+all http traffic.  They are imperfect but fast.  Integration tests require an
+internet connection, an edis account, stable edis reference and edis to be
+available.  There are various rake tasks for testing:
+* test: run all tests
+* test_unit: unit tests only
+* test_integration: integration tests
+
+Running integration tests requires that you adding ./test/config.rb with a hash that contains the following keys
 
 ```ruby
 CREDS = { username: 'sean', password: 'password' }
