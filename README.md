@@ -9,6 +9,7 @@ Tests are divided between unit and integration.  Unit tests use FakeWeb to mock
 all http traffic.  They are imperfect but fast.  Integration tests require an
 internet connection, an edis account, stable edis reference and edis to be
 available.  There are various rake tasks for testing:
+
 * test: run all tests
 * test_unit: unit tests only
 * test_integration: integration tests
