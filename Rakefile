@@ -28,21 +28,21 @@ Jeweler::RubygemsDotOrgTasks.new
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/**/test_*.rb'
+  test.pattern = 'test/**/*_test.rb'
   test.verbose = true
 end
 
 require 'rake/testtask'
 Rake::TestTask.new(:test_unit) do |test|
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/unit/**/test_*.rb'
+  test.pattern = 'test/unit/**/*_test.rb'
   test.verbose = true
 end
 
 require 'rake/testtask'
 Rake::TestTask.new(:test_integration) do |test|
   test.libs << 'lib' << 'test'
-  test.pattern = 'test/integration/**/test_*.rb'
+  test.pattern = 'test/integration/**/*_test.rb'
   test.verbose = true
 end
 
